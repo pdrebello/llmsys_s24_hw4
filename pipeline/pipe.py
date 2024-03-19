@@ -27,7 +27,11 @@ def _clock_cycles(num_batches: int, num_partitions: int) -> Iterable[List[Tuple[
     This function should yield schedules for each clock cycle.
     '''
     # BEGIN SOLUTION
-    raise NotImplementedError("Schedule Generation Not Implemented Yet")
+    schedule = [[] for x in range(num_batches + num_partitions-1)]
+    for batch_idx in range(num_batches):
+        for partition_idx in range(num_partitions):
+            schedule[batch_idx + partition_idx].append((batch_idx, partition_idx))
+    return schedule
     # END SOLUTION
 
 class Pipe(nn.Module):
@@ -53,11 +57,14 @@ class Pipe(nn.Module):
         4. Concatenate the micro-batches to form the mini-batch and return it.
         '''
         # BEGIN SOLUTION
-        raise NotImplementedError("Pipeline Parallel Not Implemented Yet")
+        x = x.unsqueeze(1)
+        schedule = _clock_cycles(len(x), len(self.partitions))
+        x = self.compute(x, schedule)
+        return torch.concat(x)
         # END SOLUTION
 
     # ASSIGNMENT 4.2
-    def compute(self, batches, schedule: List[Tuple[int, int]]) -> None:
+    def compute(self, batch, schedule: List[Tuple[int, int]]) -> None:
         '''Compute the micro-batches in parallel.
 
         Hint:
@@ -69,7 +76,35 @@ class Pipe(nn.Module):
         partitions = self.partitions
         devices = self.devices
 
+
         # BEGIN SOLUTION
-        raise NotImplementedError("Pipeline Parallel Not Implemented Yet")
+        out_list = []
+        batch_len = len(batch)
+        def execute_forward(partition, inp):
+            #print(type(inp))
+            def inner_func():
+                return partition(inp)
+            return inner_func #lambda: partition(inp)
+        def extract_queue_result(x):
+            if(x[0]):
+                return x[1][1]
+            else:
+                print("ERROR: {}".format(x[1]))
+                exit()
+                
+        for clock_cycle_list in schedule:
+            for (batch_idx, partition_idx) in clock_cycle_list:
+                if(partition_idx == 0):
+                    x = batch[batch_idx]
+                else:
+                    x = extract_queue_result(self.out_queues[partition_idx-1].get())
+                #print("Append: {} {}".format(partition_idx, type(x)))
+                #print(partitions[partition_idx])
+                self.in_queues[partition_idx].put(Task(execute_forward(partitions[partition_idx], x.to(devices[partition_idx]))))                    
+                        
+        while(len(out_list) < batch_len):
+            out_list.append(extract_queue_result(self.out_queues[len(partitions)-1].get()))
+
+        return out_list                                       
         # END SOLUTION
 

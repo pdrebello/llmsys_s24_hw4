@@ -21,8 +21,12 @@ from torch.multiprocessing import Process
 
 from data_parallel.dataset import partition_dataset
 from utils import get_tokenizer, evaluate_bleu, save_grad_weights, collate_batch, evaluate_loss, generate, train
+import utils
 
 PYTEST = False
+
+os.environ["http_proxy"] = "http://proxy.cmu.edu:3128"
+os.environ["https_proxy"] = "http://proxy.cmu.edu:3128"
 
 # ASSIGNMENT 4.1
 def average_gradients(model):
@@ -33,7 +37,9 @@ def average_gradients(model):
     3. Average the gradients over the world_size (total number of devices)
     '''
     # BEGIN SOLUTION
-    raise NotImplementedError("Data Parallel Not Implemented Yet")
+    for name, param in model.named_parameters():
+        if(param.requires_grad):
+            param.grad = torch.distributed.all_reduce(param.grad, torch.distributed.ReduceOp.AVG)
     # END SOLUTION
 
 # ASSIGNMENT 4.1
@@ -44,7 +50,9 @@ def setup(rank, world_size, backend):
     2. Use `torch.distributed` to init the process group
     '''
     # BEGIN SOLUTION
-    raise NotImplementedError("Data Parallel Not Implemented Yet")
+    os.environ['MASTER_ADDR'] = 'localhost'
+    os.environ['MASTER_PORT'] = '11868'
+    torch.distributed.init_process_group(backend=backend, world_size=world_size, rank=rank)
     # END SOLUTION
 
 
@@ -117,6 +125,7 @@ def run_dp(
                                     desc=desc,
                                     rank=rank,
                                     average_gradients_fn=average_gradients)
+        print("Training Is Done: {}".format(rank))
         end = time.time()
         if not PYTEST:
             training_time = end - start
@@ -179,7 +188,7 @@ if __name__ == '__main__':
         PYTEST = True
     else:
         PYTEST = False
-
+    utils.PYTEST = PYTEST
     processes = []
 
     # ASSIGNMENT 4.1
@@ -190,8 +199,12 @@ if __name__ == '__main__':
     2. You should start the processes to work and terminate resources properly
     '''
     # BEGIN SOLUTION
-    world_size = None  # TODO: Define the number of GPUs
-    backend = None  # TODO: Define your backend for communication, we suggest using 'nccl'
+    world_size = args.world_size  # TODO: Define the number of GPUs
+    backend = 'nccl'  # TODO: Define your backend for communication, we suggest using 'nccl'
     
-    raise NotImplementedError("Data Parallel Not Implemented Yet")
+    for rank in range(world_size):
+        p = Process(target=run_dp, args=(rank, world_size, backend,))
+        p.start()
+    p.join()
+    p.terminate()
     # END SOLUTION

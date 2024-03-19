@@ -38,8 +38,8 @@ class GPT2ModelParallel(GPT2ModelCustom):
         '''
 
         # BEGIN SOLUTION
-        pipe = None
-        raise NotImplementedError("Pipeline Parallel Not Implemented Yet")
+        self.pipeline_parallel = True
+        pipe = Pipe(nn.Sequential(*self.h), split_size=split_size)
         # END SOLUTION
         self.h_pp = pipe
 
