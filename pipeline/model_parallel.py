@@ -22,6 +22,16 @@ class ExtractFirstItem(nn.Module):
     def forward(self, x):
         return x[0]
 
+class SelectFirst(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.a = torch.nn.Parameter(torch.randn(()))
+
+    def forward(self, x):
+        if(type(x) == tuple):
+            return x[0]
+        return x
+
 class GPT2ModelParallel(GPT2ModelCustom):
     def __init__(self, config):
         super().__init__(config)
@@ -36,10 +46,14 @@ class GPT2ModelParallel(GPT2ModelCustom):
         2. Construct an nn.Sequential module for the transformer layers (self.h).
         3. Use Pipe to parallelize the transformer layers.
         '''
-
-        # BEGIN SOLUTION
         self.pipeline_parallel = True
-        pipe = Pipe(nn.Sequential(*self.h), split_size=split_size)
+        newli = []
+        for index, layer in enumerate(self.h):
+            newli.append(layer)
+            selectfirst = SelectFirst().to(_retrieve_device(layer))
+            newli.append(selectfirst)
+        pipe = Pipe(nn.Sequential(*newli), split_size=split_size)
+        #pipe = Pipe(nn.Sequential(*self.h), split_size=split_size)
         # END SOLUTION
         self.h_pp = pipe
 

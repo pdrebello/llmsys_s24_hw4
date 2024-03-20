@@ -98,8 +98,6 @@ class Pipe(nn.Module):
                     x = batch[batch_idx]
                 else:
                     x = extract_queue_result(self.out_queues[partition_idx-1].get())
-                #print("Append: {} {}".format(partition_idx, type(x)))
-                #print(partitions[partition_idx])
                 self.in_queues[partition_idx].put(Task(execute_forward(partitions[partition_idx], x.to(devices[partition_idx]))))                    
                         
         while(len(out_list) < batch_len):
