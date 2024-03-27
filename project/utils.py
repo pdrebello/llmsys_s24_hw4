@@ -146,9 +146,6 @@ def train(model, optimizer, examples, batch_size, collate_fn, desc, rank=0, aver
             average_gradients_fn(model)
         # END SOLUTION
         optimizer.step()
-        if PYTEST:
-            save_grad_weights(model, rank)
-            break
         batch_time = time.time() - t0
         tokens = np.prod(batch['input_ids'].shape)
         tokens_per_sec.append(tokens / batch_time)

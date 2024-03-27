@@ -25,8 +25,8 @@ import utils
 
 PYTEST = False
 
-os.environ["http_proxy"] = "http://proxy.cmu.edu:3128"
-os.environ["https_proxy"] = "http://proxy.cmu.edu:3128"
+#os.environ["http_proxy"] = "http://proxy.cmu.edu:3128"
+#os.environ["https_proxy"] = "http://proxy.cmu.edu:3128"
 
 # ASSIGNMENT 4.1
 def average_gradients(model):
@@ -125,7 +125,6 @@ def run_dp(
                                     desc=desc,
                                     rank=rank,
                                     average_gradients_fn=average_gradients)
-        print("Training Is Done: {}".format(rank))
         end = time.time()
         if not PYTEST:
             training_time = end - start
@@ -166,6 +165,7 @@ def run_dp(
                 {'validation_loss': validation_loss, **eval_scores, 'training_time': training_time, 'tokens_per_sec': avg_tokens_per_sec},
                 open(f'{workdir}/rank{rank}_results_epoch{epoch_idx}.json', 'w'))
         else:
+            save_grad_weights(model, rank)
             break
     if not PYTEST:
         # You only get the average training time and tokens_per_second per device
@@ -188,7 +188,7 @@ if __name__ == '__main__':
         PYTEST = True
     else:
         PYTEST = False
-    utils.PYTEST = PYTEST
+
     processes = []
 
     # ASSIGNMENT 4.1
