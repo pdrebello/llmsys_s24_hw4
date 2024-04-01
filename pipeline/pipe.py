@@ -6,6 +6,7 @@ import torch.autograd
 import torch.cuda
 from .worker import Task, create_workers
 from .partition import _split_module
+import math
 
 # ASSIGNMENT 4.2
 def _clock_cycles(num_batches: int, num_partitions: int) -> Iterable[List[Tuple[int, int]]]:
@@ -58,20 +59,15 @@ class Pipe(nn.Module):
         '''
         # BEGIN SOLUTION
         #x = x.unsqueeze(1)
-        self.microbatch_size = 64
+        #self.microbatch_size = 64
         #schedule = _clock_cycles(len(x), len(self.partitions))
         #schedule = _clock_cycles(1, len(self.partitions))
-        import math
-        num_microbatches = int(len(x)/self.microbatch_size)
-        if(len(x) % self.microbatch_size != 0):
-            num_microbatches += 1
-        schedule = _clock_cycles(num_microbatches, len(self.partitions))
-        #import pdb
-        #pdb.set_trace()
+        #import math
+        #num_microbatches = int(len(x)/self.microbatch_size)
+        #if(len(x) % self.microbatch_size != 0):
+        #    num_microbatches += 1
+        schedule = _clock_cycles(self.split_size, len(self.partitions))
         x = self.compute(x, schedule)
-
-        #import pdb
-        #pdb.set_trace()
         return torch.concat(x)
         # END SOLUTION
 
@@ -87,9 +83,7 @@ class Pipe(nn.Module):
         '''
         partitions = self.partitions
         devices = self.devices
-        microbatch_size = self.microbatch_size
-        #import pdb
-        #pdb.set_trace()
+        microbatch_size = math.ceil(len(batch)/self.split_size)
 
         # BEGIN SOLUTION
         out_list = []
