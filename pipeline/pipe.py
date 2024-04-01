@@ -66,8 +66,8 @@ class Pipe(nn.Module):
         #num_microbatches = int(len(x)/self.microbatch_size)
         #if(len(x) % self.microbatch_size != 0):
         #    num_microbatches += 1
-
-        schedule = _clock_cycles(min(len(x), self.split_size), len(self.partitions))
+        num_microbatches = math.ceil(len(x)/self.split_size)
+        schedule = _clock_cycles(num_microbatches, len(self.partitions))
         x = self.compute(x, schedule)
         x = torch.concat(x)
         return x
@@ -85,7 +85,6 @@ class Pipe(nn.Module):
         '''
         partitions = self.partitions
         devices = self.devices
-        microbatch_size = math.ceil(len(batch)/self.split_size)
 
         # BEGIN SOLUTION
         out_list = []
@@ -109,7 +108,7 @@ class Pipe(nn.Module):
                 if(partition_idx == 0):
                     #x = batch[batch_idx] #batch[batch_idx*microbatch_size : (batch_idx+1)*microbatch_size]
                     #x = batch
-                    x = batch[batch_idx*microbatch_size : (batch_idx+1)*microbatch_size]
+                    x = batch[batch_idx*self.split_size : (batch_idx+1)*self.split_size]
                     wait_len += len(x)
                 else:
                     x = extract_queue_result(self.out_queues[partition_idx-1].get())
