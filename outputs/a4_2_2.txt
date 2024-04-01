@@ -1,0 +1,30 @@
+============================= test session starts ==============================
+platform linux -- Python 3.9.18, pytest-7.1.2, pluggy-1.3.0 -- /home/pdsouzar/miniconda3/envs/minitorch/bin/python
+cachedir: .pytest_cache
+hypothesis profile 'default' -> database=DirectoryBasedExampleDatabase('/home/pdsouzar/LLM/llmsys_s24_hw4/.hypothesis/examples')
+rootdir: /home/pdsouzar/LLM/llmsys_s24_hw4, configfile: pytest.ini
+plugins: anyio-4.2.0, hypothesis-6.54.0, env-0.6.2
+collecting ... collected 34 items / 14 deselected / 20 selected
+
+tests/test_pipeline.py::test_forward_0[1-1] PASSED                       [  5%]
+tests/test_pipeline.py::test_forward_0[1-16] PASSED                      [ 10%]
+tests/test_pipeline.py::test_forward_0[1-32] PASSED                      [ 15%]
+tests/test_pipeline.py::test_forward_0[1-64] PASSED                      [ 20%]
+tests/test_pipeline.py::test_forward_0[2-1] PASSED                       [ 25%]
+tests/test_pipeline.py::test_forward_0[2-16] PASSED                      [ 30%]
+tests/test_pipeline.py::test_forward_0[2-32] PASSED                      [ 35%]
+tests/test_pipeline.py::test_forward_0[2-64] PASSED                      [ 40%]
+tests/test_pipeline.py::test_forward_0[4-1] PASSED                       [ 45%]
+tests/test_pipeline.py::test_forward_0[4-16] PASSED                      [ 50%]
+tests/test_pipeline.py::test_forward_0[4-32] PASSED                      [ 55%]
+tests/test_pipeline.py::test_forward_0[4-64] PASSED                      [ 60%]
+tests/test_pipeline.py::test_forward_0[8-1] PASSED                       [ 65%]
+tests/test_pipeline.py::test_forward_0[8-16] PASSED                      [ 70%]
+tests/test_pipeline.py::test_forward_0[8-32] PASSED                      [ 75%]
+tests/test_pipeline.py::test_forward_0[8-64] PASSED                      [ 80%]
+tests/test_pipeline.py::test_forward_0[16-1] PASSED                      [ 85%]
+tests/test_pipeline.py::test_forward_0[16-16] PASSED                     [ 90%]
+tests/test_pipeline.py::test_forward_0[16-32] PASSED                     [ 95%]
+tests/test_pipeline.py::test_forward_0[16-64] PASSED                     [100%]
+
+====================== 20 passed, 14 deselected in 1.59s =======================
