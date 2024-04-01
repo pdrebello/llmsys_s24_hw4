@@ -66,9 +66,11 @@ class Pipe(nn.Module):
         #num_microbatches = int(len(x)/self.microbatch_size)
         #if(len(x) % self.microbatch_size != 0):
         #    num_microbatches += 1
-        schedule = _clock_cycles(self.split_size, len(self.partitions))
+
+        schedule = _clock_cycles(min(len(x), self.split_size), len(self.partitions))
         x = self.compute(x, schedule)
-        return torch.concat(x)
+        x = torch.concat(x)
+        return x
         # END SOLUTION
 
     # ASSIGNMENT 4.2
@@ -115,13 +117,11 @@ class Pipe(nn.Module):
                         
         #while(len(out_list) < batch_len):
         #while(output_len < batch_len):
+        assert(wait_len == batch_len)
         while(output_len < wait_len):
             #print((output_len, batch_len))
             out_list.append(extract_queue_result(self.out_queues[len(partitions)-1].get()))
             output_len += len(out_list[-1])
-        if(len(out_list) == 0):
-            import pdb
-            pdb.set_trace()
         return out_list                                       
         # END SOLUTION
 
