@@ -57,9 +57,21 @@ class Pipe(nn.Module):
         4. Concatenate the micro-batches to form the mini-batch and return it.
         '''
         # BEGIN SOLUTION
-        x = x.unsqueeze(1)
-        schedule = _clock_cycles(len(x), len(self.partitions))
+        #x = x.unsqueeze(1)
+        self.microbatch_size = 64
+        #schedule = _clock_cycles(len(x), len(self.partitions))
+        #schedule = _clock_cycles(1, len(self.partitions))
+        import math
+        num_microbatches = int(len(x)/self.microbatch_size)
+        if(len(x) % self.microbatch_size != 0):
+            num_microbatches += 1
+        schedule = _clock_cycles(num_microbatches, len(self.partitions))
+        #import pdb
+        #pdb.set_trace()
         x = self.compute(x, schedule)
+
+        #import pdb
+        #pdb.set_trace()
         return torch.concat(x)
         # END SOLUTION
 
@@ -75,11 +87,15 @@ class Pipe(nn.Module):
         '''
         partitions = self.partitions
         devices = self.devices
-
+        microbatch_size = self.microbatch_size
+        #import pdb
+        #pdb.set_trace()
 
         # BEGIN SOLUTION
         out_list = []
+        output_len = 0
         batch_len = len(batch)
+        wait_len = 0
         def execute_forward(partition, inp):
             #print(type(inp))
             def inner_func():
@@ -95,14 +111,23 @@ class Pipe(nn.Module):
         for clock_cycle_list in schedule:
             for (batch_idx, partition_idx) in clock_cycle_list:
                 if(partition_idx == 0):
-                    x = batch[batch_idx]
+                    #x = batch[batch_idx] #batch[batch_idx*microbatch_size : (batch_idx+1)*microbatch_size]
+                    #x = batch
+                    x = batch[batch_idx*microbatch_size : (batch_idx+1)*microbatch_size]
+                    wait_len += len(x)
                 else:
                     x = extract_queue_result(self.out_queues[partition_idx-1].get())
                 self.in_queues[partition_idx].put(Task(execute_forward(partitions[partition_idx], x.to(devices[partition_idx]))))                    
                         
-        while(len(out_list) < batch_len):
+        #while(len(out_list) < batch_len):
+        #while(output_len < batch_len):
+        while(output_len < wait_len):
+            #print((output_len, batch_len))
             out_list.append(extract_queue_result(self.out_queues[len(partitions)-1].get()))
-
+            output_len += len(out_list[-1])
+        if(len(out_list) == 0):
+            import pdb
+            pdb.set_trace()
         return out_list                                       
         # END SOLUTION
 
