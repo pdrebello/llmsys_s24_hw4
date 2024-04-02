@@ -203,8 +203,10 @@ if __name__ == '__main__':
     backend = 'nccl'  # TODO: Define your backend for communication, we suggest using 'nccl'
     
     for rank in range(world_size):
-        p = Process(target=run_dp, args=(rank, world_size, backend,))
+        p = Process(target=run_dp, args=(rank, world_size, backend,args.dataset, args.model_max_length, args.n_epochs, args.batch_size, args.learning_rate))
         p.start()
-    p.join()
-    p.terminate()
+        processes.append(p)
+    for p in processes:
+        p.join()
+        p.terminate()
     # END SOLUTION
